@@ -1,43 +1,96 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 LED Control</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control y Monitoreo de LEED</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 50px auto; padding: 20px; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .section { margin-bottom: 20px; }
+    .section h2 { margin-top: 0; }
+    button { padding: 10px 20px; margin: 5px; border: none; background-color: #007bff; color: white; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    input[type="time"] { padding: 10px; margin: 5px; }
+  </style>
 </head>
 <body>
-    <h1>Control del LED</h1>
-    <button id="toggleLed">Encender/Apagar LED</button>
-    <p>Estado del LED: <span id="ledStatus">Desconocido</span></p>
-    <p>Consumo de vatios: <span id="wattage">0</span> W</p>
+  <div class="container">
+    <h1>Control y Monitoreo de LED</h1>
+    <div class="section" id="monitor">
+      <h2>Consumo de Vatios</h2>
+      <p>Total Vatios Usados: <span id="totalWatts">0.0</span> W</p>
+    </div>
+    <div class="section" id="control">
+      <h2>Control del LED</h2>
+      <button onclick="toggleLED()">Encender/Apagar LED</button>
+      <br><br>
+      <button onclick="enablePIR()">Habilitar PIR</button>
+      <button onclick="disablePIR()">Deshabilitar PIR</button>
+      <br><br>
+      <button onclick="manualOn()">Encender Manualmente</button>
+      <button onclick="manualOff()">Apagar Manualmente</button>
+    </div>
+    <div class="section" id="schedule">
+      <h2>Programar Encendido/Apagado</h2>
+      <p>Horas de apagado:</p>
+      <input type="time" id="offStart">
+      <input type="time" id="offEnd">
+      <button onclick="setOffSchedule()">Programar Apagado</button>
+      <br><br>
+      <p>Horas de encendido:</p>
+      <input type="time" id="onStart">
+      <input type="time" id="onEnd">
+      <button onclick="setOnSchedule()">Programar Encendido</button>
+    </div>
+  </div>
 
-    <script>
-        const ledStatus = document.getElementById('ledStatus');
-        const wattage = document.getElementById('wattage');
-        const toggleLed = document.getElementById('toggleLed');
+  <script>
+    // Actualiza el consumo de vatios en la página
+    function updateWatts(totalWatts) {
+      document.getElementById('totalWatts').innerText = totalWatts.toFixed(4);
+    }
 
-        toggleLed.addEventListener('click', () => {
-            fetch('/toggle')
-                .then(response => response.text())
-                .then(data => {
-                    ledStatus.innerText = data;
-                    updateWattage(data);
-                });
-        });
+    // Funciones para controlar el LED
+    function toggleLED() {
+      fetch('/toggleLED');
+    }
 
-        function updateWattage(status) {
-            let watt = status === 'Encendido' ? 0.0232 : 0.0055;
-            wattage.innerText = watt;
-        }
+    function enablePIR() {
+      fetch('/enablePIR');
+    }
 
-        // Actualiza el estado y el consumo de vatios al cargar la página
-        fetch('/status')
-            .then(response => response.text())
-            .then(data => {
-                ledStatus.innerText = data;
-                updateWattage(data);
-            });
-    </script>
+    function disablePIR() {
+      fetch('/disablePIR');
+    }
+
+    function manualOn() {
+      fetch('/manualOn');
+    }
+
+    function manualOff() {
+      fetch('/manualOff');
+    }
+
+    // Funciones para programar encendido/apagado
+    function setOffSchedule() {
+      const offStart = document.getElementById('offStart').value;
+      const offEnd = document.getElementById('offEnd').value;
+      fetch(`/setOffSchedule?start=${offStart}&end=${offEnd}`);
+    }
+
+    function setOnSchedule() {
+      const onStart = document.getElementById('onStart').value;
+      const onEnd = document.getElementById('onEnd').value;
+      fetch(`/setOnSchedule?start=${onStart}&end=${onEnd}`);
+    }
+
+    // Llama periódicamente al servidor para obtener el consumo de vatios
+    setInterval(() => {
+      fetch('/getWatts')
+        .then(response => response.json())
+        .then(data => updateWatts(data.totalWatts));
+    }, 1000);
+  </script>
 </body>
 </html>
-
