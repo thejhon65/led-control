@@ -1,6 +1,10 @@
 <!DOCTYPE html>
+<html lang="en">
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 LED Control</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Control y Monitoreo de LEED</title>
@@ -15,6 +19,38 @@
   </style>
 </head>
 <body>
+    <h1>Control del LED</h1>
+    <button id="toggleLed">Encender/Apagar LED</button>
+    <p>Estado del LED: <span id="ledStatus">Desconocido</span></p>
+    <p>Consumo de vatios: <span id="wattage">0</span> W</p>
+
+    <script>
+        const ledStatus = document.getElementById('ledStatus');
+        const wattage = document.getElementById('wattage');
+        const toggleLed = document.getElementById('toggleLed');
+
+        toggleLed.addEventListener('click', () => {
+            fetch('/toggle')
+                .then(response => response.text())
+                .then(data => {
+                    ledStatus.innerText = data;
+                    updateWattage(data);
+                });
+        });
+
+        function updateWattage(status) {
+            let watt = status === 'Encendido' ? 0.0232 : 0.0055;
+            wattage.innerText = watt;
+        }
+
+        // Actualiza el estado y el consumo de vatios al cargar la página
+        fetch('/status')
+            .then(response => response.text())
+            .then(data => {
+                ledStatus.innerText = data;
+                updateWattage(data);
+            });
+    </script>
   <div class="container">
     <h1>Control y Monitoreo de LED</h1>
     <div class="section" id="monitor">
