@@ -53,7 +53,7 @@
 
     // Funciones para controlar el LED
     function toggleLED() {
-      fetch('/toggleLED')
+      fetch('http://192.168.233.227/toggleLED')
         .then(response => {
           if (!response.ok) {
             throw new Error('Error al intentar cambiar el estado del LED');
@@ -66,7 +66,7 @@
     }
 
     function enablePIR() {
-      fetch('/enablePIR')
+      fetch('http://192.168.233.227/enablePIR')
         .then(response => {
           if (!response.ok) {
             throw new Error('Error al intentar habilitar el PIR');
