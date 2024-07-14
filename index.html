@@ -53,43 +53,117 @@
 
     // Funciones para controlar el LED
     function toggleLED() {
-      fetch('/toggleLED');
+      fetch('/toggleLED')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al intentar cambiar el estado del LED');
+          }
+          // Actualizar estado del LED si es necesario
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
     }
 
     function enablePIR() {
-      fetch('/enablePIR');
+      fetch('/enablePIR')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al intentar habilitar el PIR');
+          }
+          // Actualizar interfaz si es necesario
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
     }
 
     function disablePIR() {
-      fetch('/disablePIR');
+      fetch('/disablePIR')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al intentar deshabilitar el PIR');
+          }
+          // Actualizar interfaz si es necesario
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
     }
 
     function manualOn() {
-      fetch('/manualOn');
+      fetch('/manualOn')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al intentar encender manualmente el LED');
+          }
+          // Actualizar interfaz si es necesario
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
     }
 
     function manualOff() {
-      fetch('/manualOff');
+      fetch('/manualOff')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al intentar apagar manualmente el LED');
+          }
+          // Actualizar interfaz si es necesario
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
     }
 
     // Funciones para programar encendido/apagado
     function setOffSchedule() {
       const offStart = document.getElementById('offStart').value;
       const offEnd = document.getElementById('offEnd').value;
-      fetch(`/setOffSchedule?start=${offStart}&end=${offEnd}`);
+      fetch(`/setOffSchedule?start=${offStart}&end=${offEnd}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al intentar programar el apagado');
+          }
+          // Actualizar interfaz si es necesario
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
     }
 
     function setOnSchedule() {
       const onStart = document.getElementById('onStart').value;
       const onEnd = document.getElementById('onEnd').value;
-      fetch(`/setOnSchedule?start=${onStart}&end=${onEnd}`);
+      fetch(`/setOnSchedule?start=${onStart}&end=${onEnd}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al intentar programar el encendido');
+          }
+          // Actualizar interfaz si es necesario
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
     }
 
     // Llama periódicamente al servidor para obtener el consumo de vatios
     setInterval(() => {
       fetch('/getWatts')
-        .then(response => response.json())
-        .then(data => updateWatts(data.totalWatts));
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Error al obtener el consumo de vatios');
+          }
+        })
+        .then(data => {
+          updateWatts(data.totalWatts);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
     }, 1000);
   </script>
 </body>
