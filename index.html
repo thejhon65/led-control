@@ -3,168 +3,311 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control y Monitoreo de LED</title>
+  <title>Control de LED</title>
   <style>
-    body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 50px auto; padding: 20px; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    .section { margin-bottom: 20px; }
-    .section h2 { margin-top: 0; }
-    button { padding: 10px 20px; margin: 5px; border: none; background-color: #007bff; color: white; cursor: pointer; }
-    button:hover { background-color: #0056b3; }
-    input[type="time"] { padding: 10px; margin: 5px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-image: url('https://dinahosting.com/blog/upload/2022/04/estructura-web.jpg');
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .overlay img {
+      width: 40px;
+      height: 40px;
+    }
+    .header-left {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 40px;
+      height: 40px;
+    }
+    .welcome {
+      color: white;
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .start-button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .start-button:hover {
+      background-color: #218838;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      align-items: center;
+    }
+    .sidebar {
+      width: 100%;
+      max-width: 300px;
+      background-color: white;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    .sidebar button {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 15px;
+      border: none;
+      background-color: #28a745;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .sidebar button:hover {
+      background-color: #218838;
+    }
+    .content {
+      width: 100%;
+      max-width: 600px;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+    }
+    .content h2 {
+      margin-top: 0;
+    }
+    .content .status {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .content .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+    }
+    .content canvas {
+      display: block;
+      width: 100% !important;
+      height: 300px !important;
+    }
+    .content button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .content button:hover {
+      background-color: #218838;
+    }
+    .table-container {
+      overflow-x: auto;
+    }
+    .table-container table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .table-container th, .table-container td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    .table-container th {
+      background-color: #f2f2f2;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Control y Monitoreo de LED</h1>
-    <div class="section" id="monitor">
-      <h2>Consumo de Vatios</h2>
-      <p>Total Vatios Usados: <span id="totalWatts">0.0</span> W</p>
+  <div class='header-left'><img src='https://portal.unaj.edu.pe/themes/custom/modins_sub/logo.png' alt='Logo UNAJ'></div>
+  <div class='overlay'>
+    <div class='welcome'>Bienvenido al Control de LED</div>
+    <button class='start-button' onclick='startApp()'>INICIAR</button>
+  </div>
+  <script>
+    function startApp() {
+      document.querySelector('.overlay').style.display = 'none';
+      document.querySelector('.container').style.display = 'flex';
+    }
+  </script>
+
+  <div class='container' style="display: none;">
+    <div class='sidebar'>
+      <button onclick='sendRequest("/manualOn", "LED encendido manualmente");'>Prender LED</button>
+      <button onclick='sendRequest("/manualOff", "LED apagado manualmente");'>Apagar LED</button>
+      <button onclick='sendRequest("/enablePIR", "PIR activado");'>Activar sensor de movimiento</button>
+      <button onclick='sendRequest("/disablePIR", "PIR desactivado");'>Desactivar sensor de movimiento</button>
     </div>
-    <div class="section" id="control">
-      <h2>Control del LED</h2>
-      <button onclick="toggleLED()">Encender/Apagar LED</button>
-      <br><br>
-      <button onclick="enablePIR()">Habilitar PIR</button>
-      <button onclick="disablePIR()">Deshabilitar PIR</button>
-      <br><br>
-      <button onclick="manualOn()">Encender Manualmente</button>
-      <button onclick="manualOff()">Apagar Manualmente</button>
-    </div>
-    <div class="section" id="schedule">
-      <h2>Programar Encendido/Apagado</h2>
-      <p>Horas de apagado:</p>
-      <input type="time" id="offStart">
-      <input type="time" id="offEnd">
-      <button onclick="setOffSchedule()">Programar Apagado</button>
-      <br><br>
-      <p>Horas de encendido:</p>
-      <input type="time" id="onStart">
-      <input type="time" id="onEnd">
-      <button onclick="setOnSchedule()">Programar Encendido</button>
+    <div class='content'>
+      <h2>Estado del LED</h2>
+      <div class='status'>Consumo total de vatios: <span id='totalWatts'></span></div>
+      <div class='table-container'>
+        <h2>Programar apagado</h2>
+        <form id='offScheduleForm'>
+          <label for='offStartTime'>Hora de inicio:</label>
+          <input type='time' id='offStartTime' name='offStartTime'>
+          <label for='offEndTime'>Hora de fin:</label>
+          <input type='time' id='offEndTime' name='offEndTime'>
+          <button type='button' onclick='setOffSchedule()'>Establecer horario de apagado</button>
+        </form>
+        <h2>Programar encendido</h2>
+        <form id='onScheduleForm'>
+          <label for='onStartTime'>Hora de inicio:</label>
+          <input type='time' id='onStartTime' name='onStartTime'>
+          <label for='onEndTime'>Hora de fin:</label>
+          <input type='time' id='onEndTime' name='onEndTime'>
+          <button type='button' onclick='setOnSchedule()'>Establecer horario de encendido</button>
+        </form>
+        <div class='status'>Estado: <span id='ledStatus'></span></div>
+        <div class='chart-container'>
+          <canvas id='consumptionChart'></canvas>
+        </div>
+        <button onclick='updateWatts()'>Actualizar Consumo</button>
+        <div class='table-container'>
+          <table id='consumptionTable'>
+            <thead><tr><th>Fecha</th><th>Consumo (W)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
-
+  <script src='https://cdn.jsdelivr.net/npm/chart.js'></script>
   <script>
-    // Actualiza el consumo de vatios en la página
-    function updateWatts(totalWatts) {
-      document.getElementById('totalWatts').innerText = totalWatts.toFixed(4);
-    }
+    const esp32BaseUrl = 'http://your-esp32-ip';
 
-    // Funciones para controlar el LED
-    function toggleLED() {
-      fetch('http://192.168.233.227/toggleLED')
+    function sendRequest(url, message) {
+      fetch(esp32BaseUrl + url)
         .then(response => {
-          if (!response.ok) {
-            throw new Error('Error al intentar cambiar el estado del LED');
+          if (response.ok) {
+            showNotification(message);
           }
-          // Actualizar estado del LED si es necesario
         })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+        .catch(error => console.error('Error:', error));
     }
 
-    function enablePIR() {
-      fetch('http://192.168.233.227/enablePIR')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Error al intentar habilitar el PIR');
-          }
-          // Actualizar interfaz si es necesario
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.textContent = message;
+      notification.style.position = 'fixed';
+      notification.style.bottom = '10px';
+      notification.style.left = '50%';
+      notification.style.transform = 'translateX(-50%)';
+      notification.style.backgroundColor = '#28a745';
+      notification.style.color = 'white';
+      notification.style.padding = '10px';
+      notification.style.borderRadius = '5px';
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 3000);
     }
 
-    function disablePIR() {
-      fetch('/disablePIR')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Error al intentar deshabilitar el PIR');
-          }
-          // Actualizar interfaz si es necesario
+    function updateWatts() {
+      fetch(esp32BaseUrl + '/getWatts')
+        .then(response => response.text())
+        .then(watts => {
+          showNotification('Consumo total: ' + watts + ' W');
+          document.getElementById('totalWatts').textContent = watts;
+          updateDailyConsumption();
         })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+        .catch(error => console.error('Error:', error));
     }
 
-    function manualOn() {
-      fetch('/manualOn')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Error al intentar encender manualmente el LED');
-          }
-          // Actualizar interfaz si es necesario
+    function updateDailyConsumption() {
+      fetch(esp32BaseUrl + '/getDailyConsumption')
+        .then(response => response.json())
+        .then(data => {
+          const tbody = document.querySelector('#consumptionTable tbody');
+          tbody.innerHTML = '';
+          data.forEach(entry => {
+            const row = document.createElement('tr');
+            const dateCell = document.createElement('td');
+            dateCell.textContent = entry.date;
+            const consumptionCell = document.createElement('td');
+            consumptionCell.textContent = entry.consumption;
+            row.appendChild(dateCell);
+            row.appendChild(consumptionCell);
+            tbody.appendChild(row);
+          });
+          updateChart(data);
         })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+        .catch(error => console.error('Error:', error));
     }
 
-    function manualOff() {
-      fetch('/manualOff')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Error al intentar apagar manualmente el LED');
+    function updateChart(data) {
+      const ctx = document.getElementById('consumptionChart').getContext('2d');
+      const labels = data.map(entry => entry.date);
+      const consumptionData = data.map(entry => entry.consumption);
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Consumo diario (W)',
+            data: consumptionData,
+            backgroundColor: 'rgba(40, 167, 69, 0.2)',
+            borderColor: '#28a745',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
           }
-          // Actualizar interfaz si es necesario
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+        }
+      });
     }
 
-    // Funciones para programar encendido/apagado
     function setOffSchedule() {
-      const offStart = document.getElementById('offStart').value;
-      const offEnd = document.getElementById('offEnd').value;
-      fetch(`/setOffSchedule?start=${offStart}&end=${offEnd}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Error al intentar programar el apagado');
-          }
-          // Actualizar interfaz si es necesario
+      const startTime = document.getElementById('offStartTime').value;
+      const endTime = document.getElementById('offEndTime').value;
+      const params = new URLSearchParams({ offStartTime: startTime, offEndTime: endTime });
+      fetch(esp32BaseUrl + '/setOffSchedule?' + params.toString())
+        .then(response => response.text())
+        .then(result => {
+          showNotification('Horario de apagado establecido');
         })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+        .catch(error => console.error('Error:', error));
     }
 
     function setOnSchedule() {
-      const onStart = document.getElementById('onStart').value;
-      const onEnd = document.getElementById('onEnd').value;
-      fetch(`/setOnSchedule?start=${onStart}&end=${onEnd}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Error al intentar programar el encendido');
-          }
-          // Actualizar interfaz si es necesario
+      const startTime = document.getElementById('onStartTime').value;
+      const endTime = document.getElementById('onEndTime').value;
+      const params = new URLSearchParams({ onStartTime: startTime, onEndTime: endTime });
+      fetch(esp32BaseUrl + '/setOnSchedule?' + params.toString())
+        .then(response => response.text())
+        .then(result => {
+          showNotification('Horario de encendido establecido');
         })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+        .catch(error => console.error('Error:', error));
     }
 
-    // Llama periódicamente al servidor para obtener el consumo de vatios
-    setInterval(() => {
-      fetch('/getWatts')
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error('Error al obtener el consumo de vatios');
-          }
-        })
-        .then(data => {
-          updateWatts(data.totalWatts);
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
-    }, 1000);
+    // Initialize the chart and fetch initial data
+    document.addEventListener('DOMContentLoaded', () => {
+      updateWatts();
+    });
   </script>
 </body>
 </html>
